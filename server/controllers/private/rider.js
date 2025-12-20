@@ -64,4 +64,16 @@ router.get("/rider-history",async (req,res)=>{
         res.status(500).json({msg : error})
     }
 })
+
+router.get("/rider-offduty",async(req,res)=>{
+    try {
+        let rider = req.user
+        await riderModel.updateOne({email : rider.email},{$set:{isOnline:false}})
+        res.status(200).json({msg : "you are now off-duty"})
+    } catch (error) {
+        console.log(error);
+        res.status(500).json({msg : error})
+    }
+})
+
 export default router;
