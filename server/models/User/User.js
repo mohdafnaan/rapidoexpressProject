@@ -4,7 +4,7 @@ const userSchema = new mongoose.Schema(
     {
         fullName : {
             type : String,
-            require : true,
+            required : true,
             trim : true
         },
         phone : {
@@ -13,16 +13,16 @@ const userSchema = new mongoose.Schema(
         },
         email : {
             type : String,
-            require : true,
+            required : true,
             trim : true
         },
         password :{
             type : String,
-            require : true,
+            required : true,
         },
         age : {
             type : Number,
-            require : true,
+            required : true,
             minlength : [18,"minimum age required is 18"],
             maxlength : [80,"maximum age is 80"]
         },

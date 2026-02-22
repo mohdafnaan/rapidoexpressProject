@@ -11,31 +11,40 @@ const rideSchema = new mongoose.Schema(
         rideDetails : {
             from : {
                 type : String,
-                require : true
+                required : true
             },
             to : {
                 type  : String,
-                require : true
+                required : true
             },
             distance : {
                 type : Number,
-                require : true
+                required : true
             },
             vehicleType : {
                 type : String,
-                require : true,
+                required : true,
                 enum : ["scooty","cab","bike","auto"]
             },
             PaymentMethod : {
                 type : String,
-                require :true,
-                enum : ["cod","upi"]
+                required :true,
+                enum : ["cod","upi","cash"]
             },
             fare : {
                 type : Number,
             }
 
 
+        },
+        status: {
+            type: String,
+            enum: ["pending", "accepted", "ongoing", "completed", "cancelled"],
+            default: "pending"
+        },
+        otp: {
+            type: String,
+            default: () => Math.floor(1000 + Math.random() * 9000).toString()
         }
     },
     {

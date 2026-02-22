@@ -73,29 +73,88 @@ router.delete("/user-delete", async (req, res) => {
 
 router.post("/placeorder", async (req, res) => {
   try {
-    let { from, to, distance, vehicleType, paymentMethod } = req.body;
-    let user = await userModel.findOne({ email: req.user.email });
-    let rider = await riderModel.findOne({ vehicleType, isOnline: true });
-    let fare = distance * 10;
-    let ridepayload = {
+    const { from, to, distance, vehicleType, paymentMethod } = req.body;
+    console.log("Booking request received:", { from, to, distance, vehicleType, paymentMethod });
+    
+    const user = await userModel.findOne({ email: req.user.email });
+    if (!user) {
+      console.error("User not found:", req.user.email);
+      return res.status(404).json({ msg: "User account not found" });
+    }
+
+    // Direct match for vehicleType and online status
+    const rider = await riderModel.findOne({ vehicleType, isOnline: true });
+    
+    if (!rider) {
+      console.warn("No available riders found for:", vehicleType);
+      return res.status(404).json({ msg: `No available captains for ${vehicleType}` });
+    }
+
+    const fare = Math.max(1, distance) * 10;
+    const ridepayload = {
       userId: user._id,
       riderId: rider._id,
       rideDetails: {
         from,
         to,
-        distance,
+        distance: Math.max(1, distance),
         vehicleType,
-        paymentMethod,
+        PaymentMethod: paymentMethod || "cash",
         fare
       },
     };
-    await rideModel.insertOne(ridepayload);
-    res.status(200).json({ msg: "rider assigned" });
+
+    console.log("Creating ride with payload:", ridepayload);
+    const newRide = await rideModel.create(ridepayload);
+    
+    res.status(200).json({ 
+      msg: "Rider assigned successfully", 
+      fare,
+      rideId: newRide._id,
+      otp: newRide.otp,
+      rider: {
+        fullName: rider.fullName,
+        phone: rider.phone,
+        vehicleRc: rider.vehicleRc,
+        vehicleType: rider.vehicleType
+      }
+    });
   } catch (error) {
-    console.log(error);
-    res.status(500).json({ msg: error });
+    console.error("Placeorder Error:", error);
+    res.status(500).json({ msg: "Internal server error during booking", error: error.message });
   }
 });
+
+router.get("/active-ride", async (req, res) => {
+  try {
+    const user = await userModel.findOne({ email: req.user.email });
+    const ride = await rideModel.findOne({ 
+      userId: user._id, 
+      status: { $in: ["pending", "accepted", "ongoing"] } 
+    }).sort({ createdAt: -1 });
+
+    if (!ride) return res.status(200).json(null);
+
+    const rider = await riderModel.findById(ride.riderId, { 
+      fullName: 1, phone: 1, vehicleRc: 1, vehicleType: 1 
+    });
+
+    res.status(200).json({ ...ride.toObject(), rider });
+  } catch (error) {
+    res.status(500).json({ msg: error.message });
+  }
+});
+
+router.put("/cancel-ride", async (req, res) => {
+    try {
+        const { rideId } = req.body;
+        await rideModel.findByIdAndUpdate(rideId, { status: "cancelled" });
+        res.status(200).json({ msg: "Ride cancelled" });
+    } catch (error) {
+        res.status(500).json({ msg: error.message });
+    }
+});
+
 router.get("/user-history", async (req, res) => {
   try {
     let user = await userModel.findOne({ email: req.user.email });

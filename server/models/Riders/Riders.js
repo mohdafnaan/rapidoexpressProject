@@ -5,7 +5,7 @@ const riderSchema = new mongoose.Schema(
     {
         fullName : {
             type : String,
-            require : true,
+            required : true,
             trim : true
         },
         phone : {
@@ -14,22 +14,22 @@ const riderSchema = new mongoose.Schema(
         },
         email : {
             type : String,
-            require : true,
+            required : true,
             trim : true
         },
         password :{
             type : String,
-            require : true,
+            required : true,
         },
         age : {
             type : Number,
-            require : true,
+            required : true,
             minlength : [18,"minimum age required is 18"],
             maxlength : [80,"maximum age is 80"]
         },
         gender : {
             type : String,
-            require : true,
+            required : true,
             enum : ["male","female","others"]
         },
         isActive : {
@@ -58,12 +58,12 @@ const riderSchema = new mongoose.Schema(
         },
         vehicleType : {
             type : String,
-            enum :["bike","scooty"],
-            require : true
+            enum :["bike","scooty","auto","cab"],
+            required : true
         },
         vehicleRc : {
             type : String,
-            require : true
+            required : true
         },
         isOnline : {
             type : Boolean,
